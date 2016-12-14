@@ -7,7 +7,8 @@ type Ingredients = [String]
 type Time = Int -- Minutes
 type Description = String
 type Login = String
+type Pwd = String
 
 data Recipe = Recipe IdUser Rating Name Ingredients Time Description
 
-data User = User IdUser Login
+data User = User IdUser Login Pwd
