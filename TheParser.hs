@@ -16,7 +16,7 @@ strToRecipe str = Recipe idu rat name ingr t desc
 		name = name'
 		ingr = splitOn ", " ingr'
 		t = read t'
-		desc = desc
+		desc = desc'
 
 
 
