@@ -66,11 +66,22 @@ getRecipesByIngr xs rs = map fst $ sortBy sortByOverlap (foldl step [] rs)
 
 readBase :: GenParams -> IO ()
 readBase (PrintRecipeByIngr xs) = do
-    content <- readFile "Base.txt"
+    content <- readFile "base.txt"
     print " "
     -- print $ getRecipesByIngr xs (linesToRecipes content)
-readBase (PrintRecipeByName name) = undefined
-readBase (FilterAll time) = undefined
+
+readBase (PrintRecipeByName name) = do
+	let Recipe(idu rat nam ingr t desc) = head $ filter (\Recipe(_ _ name1 _ _ _) -> name == name1 ) 
+	putStrLn nam
+	putStrLn desc
+
+readBase (FilterAll time) = do
+	let xs = filter (\Recipe(_ _ _ _ t _) -> t == time ) 
+	mapM print' xs
+	where
+		print' Recipe(idu rat name _ t' _) = do
+			putStrLn idu + " " + rat + " " + name + " " + t'
+	
 readBase (FilterFound time) = undefined
 readBase (SignUp login) = undefined
 readBase (SignIn login pwd) = undefined
