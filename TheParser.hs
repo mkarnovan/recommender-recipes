@@ -18,8 +18,18 @@ strToRecipe str = Recipe idu rat name ingr t desc
 		t = read t'
 		desc = desc'
 
-
-
 --Готовый список рецептов
 linesToRecipes ::  [String] -> [Recipe]
 linesToRecipes = map strToRecipe
+
+
+--Парсер строки
+strToUser :: String -> User
+strToUser str = User id uname upass
+	where 
+		[id',uname,upass] = words str
+		id = read id'
+
+--Готовый список аккаунтов
+linesToUsers ::  [String] -> [User]
+linesToUsers str = User 0 "admin" "0000":map strToUser str

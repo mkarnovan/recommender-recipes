@@ -25,7 +25,7 @@ data GenParams = PrintRecipeByIngr Ingredients |
                  FilterAll Time |
                  FilterFound Time |
                  SignIn Login Pwd |
-                 SignUp Login|
+                 SignUp Login Pwd |
                  Help
 
 -- TODO разобраться с error (выходит ли из приложения)
@@ -83,7 +83,7 @@ readBase (FilterAll time) = do
 			putStrLn idu + " " + rat + " " + name + " " + t'
 	
 readBase (FilterFound time) = undefined
-readBase (SignUp login) = undefined
+readBase (SignUp login pwd) = undefined
 readBase (SignIn login pwd) = undefined
 readBase (Help) = undefined
 --
