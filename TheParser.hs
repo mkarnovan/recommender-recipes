@@ -33,3 +33,14 @@ strToUser str = User id uname upass
 --Готовый список аккаунтов
 linesToUsers ::  [String] -> [User]
 linesToUsers str = User 0 "admin" "0000":map strToUser str
+
+--show для user-а
+userToString:: User -> String
+userToString (User id name pass) = show id ++ " " ++ name ++ " " ++ pass
+
+--show для recipe-а
+recipeToString:: Recipe -> String
+recipeToString (Recipe id rating name ingr time desc) = 
+    show id ++ ";" ++ show rating ++ ";" ++ name ++ ";" ++ ingrlist ++ ";" ++ show time  ++";" ++ desc
+    where
+        ingrlist = foldl (\acc cur -> acc ++ ", " ++ cur) (head ingr) (tail ingr)

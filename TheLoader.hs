@@ -19,6 +19,12 @@ encryptBase str = show (foldl (\acc cur -> (acc + cur^2) `mod` 115249)
 replaceFile:: FilePath -> IO ()
 replaceFile fp = Strict.readFile fp >>= (\x -> return $ encryptBase x) >>= writeFile fp                               
 
+
+chk:: String -> Int
+chk str = foldl (\acc cur -> (acc + cur^2) `mod` 115249) 
+                                 111 (map ord str)
+
+
 -- Возвращает базу, если контрольная сумма верна
 -- Либо пустой список если база пуста или некорректна
 giveMeBase:: FilePath -> IO [Recipe]
@@ -26,11 +32,12 @@ giveMeBase fp = do
     content <- readFile fp
     let clines = lines content
     let chksum = read (head clines)::Int
-    let body = unwords $ tail clines
+    let body = unlines $ tail clines
     let baseIsCorrect = checkBase chksum body
+    --putStrLn $ show (chk body) ++ " " ++ show chksum
     if (not baseIsCorrect) then return []
     else
-        return $ linesToRecipes $ tail clines
+    	return $ linesToRecipes $ tail clines
 
 
 --Возвращает базу аккаунтов
@@ -39,23 +46,12 @@ giveMeAccounts fp = do
     content <- readFile fp
     let clines = lines content
     let chksum = read (head clines)::Int
-    let body = unwords $ tail clines
+    let body = unlines $ tail clines
     let baseIsCorrect = checkBase chksum body
+    --putStrLn $ show (chk body) ++ " " ++ show chksum
     if (not baseIsCorrect) then return []
     else
         return $ linesToUsers $ tail clines
-
---show для user-а
-userToString:: User -> String
-userToString (User id name pass) = show id ++ " " ++ name ++ " " ++ pass
-
---show для recipe-а
-recipeToString:: Recipe -> String
-recipeToString (Recipe id rating name ingr time desc) = 
-    show id ++ ";" ++ show rating ++ ";" ++ name ++ ingrlist ++ show time ++ desc
-    where
-        ingrlist = foldl (\acc cur -> acc ++ ", " ++ cur) (head ingr) (tail ingr)
-
 
 --Запись аккаунтов обратно в файл
 saveAccounts::FilePath -> [User] -> IO ()
@@ -63,7 +59,8 @@ saveAccounts fp ubase = writeFile fp $ encryptBase $ unlines $
                         map userToString (tail ubase)
 
 --Запись аккаунтов обратно в файл
---saveRecipes::FilePath -> [User] -> IO ()
---saveRecipes fp ubase = writeFile fp $ encryptBase $ unlines $                         
+saveBase::FilePath -> [Recipe] -> IO ()
+saveBase fp rbase = writeFile fp $ encryptBase $ unlines $ 
+		       map recipeToString rbase
 
 
