@@ -11,4 +11,4 @@ type Pwd = String
 
 data Recipe = Recipe IdUser Rating Name Ingredients Time Description deriving Show
 
-data User = User IdUser Login Pwd
+data User = User IdUser Login Pwd deriving Show
