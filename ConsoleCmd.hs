@@ -1,5 +1,6 @@
 import Data.List
 import Data.String
+import Data.Either
 import System.Environment
 import DataDescription
 
@@ -17,52 +18,70 @@ type Filename = String
 -- type Time = Int -- Minutes
 -- type Login = String
 -- type Pwd = String
+-- data Recipe = Recipe IdUser Rating Name Ingredients Time Description
 
 data GenParams = PrintRecipeByIngr Ingredients |
                  PrintRecipeByName Name |
                  FilterAll Time |
                  FilterFound Time |
                  SignIn Login Pwd |
-                 SingUp |
+                 SignUp Login|
                  Help
 
 -- TODO разобраться с error (выходит ли из приложения)
 -- сделать устойчивую проверку на ошибки
 
-parseCommand :: [String] -> Either String GenParams
-parseTask [] = Nothing
+parseTask :: [String] -> Either String GenParams
+parseTask [] = Left "Incorrect command format"
 parseTask (mode : xs)
  |mode == "print_recipes_by_ingredients" = Right (PrintRecipeByIngr xs)
  |mode == "print_recipe_by_name" = Right (PrintRecipeByName $ first_arg xs)
- |mode == "filter_all_by_cooktime" = Right (FilterAll read (first_arg xs) :: Int)
- |mode == "filter_found_by_cooktime" = Right (FilterFound read (first_arg xs) :: Int)
+ |mode == "filter_all_by_cooktime" = Right (FilterAll (read (first_arg xs) :: Int))
+ |mode == "filter_found_by_cooktime" = Right (FilterFound (read (first_arg xs) :: Int))
  |mode == "sign_up" = Right (SignUp $ first_arg xs)
  |mode == "sign_in" = Right (SignIn (first_arg xs) (pwd xs))
  |mode == "help" = Right (Help)
  |otherwise = Left "Incorrect command format"
     where
         first_arg xs = head xs
-        first_arg [] = error "incorrect data format"
         pwd [x : password] = password
         pwd _ = error "incorrect data format"
-
+--
+-- -- data Recipe = Recipe IdUser Rating Name Ingredients Time Description
+--
+sortByOverlap (a,b) (c,d)
+    | b > d = LT
+    |otherwise = GT
+--
+--
+getRecipesByIngr :: Ingredients -> [Recipe] -> [Recipe]
+getRecipesByIngr xs rs = map fst $ sortBy sortByOverlap (foldl step [] rs)
+    where
+        step ls (Recipe iD rat name ingr t d)
+            |overlap > 0 = ((Recipe iD rat name ingr t d), overlap) : ls
+            |otherwise = ls
+                where
+                    overlap = length( ingr `intersect` xs )
 
 
 readBase :: GenParams -> IO ()
-readBase (PrintRecipeByIngr xs) = undefined
+readBase (PrintRecipeByIngr xs) = do
+    content <- readFile "Base.txt"
+    print " "
+    -- print $ getRecipesByIngr xs (linesToRecipes content)
 readBase (PrintRecipeByName name) = undefined
 readBase (FilterAll time) = undefined
 readBase (FilterFound time) = undefined
 readBase (SignUp login) = undefined
 readBase (SignIn login pwd) = undefined
-readBase (Help) = undefined 
-
-
+readBase (Help) = undefined
+--
+--
 askForCommand = do
     putStrLn "Bведите команду (help для посмотра списка доступных команд)"
     l <- getLine
-    case parseCommand (words l) of
+    case parseTask (words l) of
         Right gp -> readBase gp
         Left str -> do
-                    printLn str
+                    print str
                     askForCommand
