@@ -3,6 +3,8 @@ import Data.String
 import Data.Either
 import System.Environment
 import DataDescription
+import System.IO.Unsafe
+import TheLoader
 
 -- формат команд
 -- print_recipes_by_ingredients ingr1 ingr2 ingr3 ...
@@ -25,7 +27,7 @@ data GenParams = PrintRecipeByIngr Ingredients |
                  FilterAll Time |
                  FilterFound Time |
                  SignIn Login Pwd |
-                 SignUp Login Pwd |
+                 SignUp Login |
                  Help
 
 -- TODO разобраться с error (выходит ли из приложения)
@@ -71,19 +73,18 @@ readBase (PrintRecipeByIngr xs) = do
     -- print $ getRecipesByIngr xs (linesToRecipes content)
 
 readBase (PrintRecipeByName name) = do
-	let Recipe(idu rat nam ingr t desc) = head $ filter (\Recipe(_ _ name1 _ _ _) -> name == name1 ) 
+	let (Recipe idu rat nam ingr t desc) = head (filter (\(Recipe _ _ name1 _ _ _) -> name == name1 ) (unsafePerformIO (giveMeBase "base.txt")))
 	putStrLn nam
 	putStrLn desc
 
 readBase (FilterAll time) = do
-	let xs = filter (\Recipe(_ _ _ _ t _) -> t == time ) 
-	mapM print' xs
+	let xs = filter (\(Recipe _ _ _ _ t _) -> t <= time ) (unsafePerformIO (giveMeBase "base.txt"))
+	putStrLn $ unlines $ mapM toStr' xs
 	where
-		print' Recipe(idu rat name _ t' _) = do
-			putStrLn idu + " " + rat + " " + name + " " + t'
+		toStr' (Recipe idu rat name _ t' _) = (show idu) ++ " " ++ (show rat) ++ " " ++ name ++ " " ++ (show t')
 	
 readBase (FilterFound time) = undefined
-readBase (SignUp login pwd) = undefined
+readBase (SignUp login) = undefined
 readBase (SignIn login pwd) = undefined
 readBase (Help) = undefined
 --
