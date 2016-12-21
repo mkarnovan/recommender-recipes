@@ -176,6 +176,8 @@ askForCommand = do
     putStrLn "Bведите команду (help для посмотра списка доступных команд)"
     l <- getLine
     case parseTask (words l) of
+        Right (Quit) -> do
+            putStrLn ""
         Right gp -> do
             readBase gp
             askForCommand
