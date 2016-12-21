@@ -136,7 +136,16 @@ readBase (Help) = do
     putStrLn "filter_found_by_cooktime         - выдает список рецептов, удовлетворяющих вышим ингридиентам и время готовки которых <= указанному числу минут"
     putStrLn "sign_up                          - входит в систему под указанным логином"
     putStrLn "sign_in                          - регистрация пользователя с вводимым логином и паролем"
+    putStrLn "quit                             - выход из программы"
 
+
+helpForSignIn = do
+    putStrLn "Введите следующие команды"
+    putStrLn "print_recipes_by_ingredients     - выдает список рецептов по указанным ингридиентам"
+    putStrLn "print_recipe_by_name             - выдает описание рецепта по названию"
+    putStrLn "filter_all_by_cooktime           - выдает список рецептов, время готовки которых <= указанному числу минут"
+    putStrLn "filter_found_by_cooktime         - выдает список рецептов, удовлетворяющих вышим ингридиентам и время готовки которых <= указанному числу минут"
+    putStrLn "sign_out                         - выход из системы"
 --
 --
 askForCommand = do
