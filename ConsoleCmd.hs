@@ -27,7 +27,7 @@ data GenParams = PrintRecipeByIngr Ingredients |
                  FilterAll Time |
                  FilterFound Time |
                  SignIn Login Pwd |
-                 SignUp Login |
+                 SignUp Login Pwd|
                  Help
 
 -- TODO разобраться с error (выходит ли из приложения)
@@ -40,7 +40,7 @@ parseTask (mode : xs)
  |mode == "print_recipe_by_name" = Right (PrintRecipeByName $ first_arg xs)
  |mode == "filter_all_by_cooktime" = Right (FilterAll (read (first_arg xs) :: Int))
  |mode == "filter_found_by_cooktime" = Right (FilterFound (read (first_arg xs) :: Int))
- |mode == "sign_up" = Right (SignUp $ first_arg xs)
+ |mode == "sign_up" = Right (SignUp (first_arg xs) (pwd xs))
  |mode == "sign_in" = Right (SignIn (first_arg xs) (pwd xs))
  |mode == "help" = Right (Help)
  |otherwise = Left "Incorrect command format"
@@ -54,8 +54,7 @@ parseTask (mode : xs)
 sortByOverlap (a,b) (c,d)
     | b > d = LT
     |otherwise = GT
---
---
+
 getRecipesByIngr :: Ingredients -> [Recipe] -> [Recipe]
 getRecipesByIngr xs rs = map fst $ sortBy sortByOverlap (foldl step [] rs)
     where
@@ -66,35 +65,75 @@ getRecipesByIngr xs rs = map fst $ sortBy sortByOverlap (foldl step [] rs)
                     overlap = length( ingr `intersect` xs )
 
 
+--------- Регистрация ---------
+
+addNewUser :: Login -> Pwd -> [User] -> [User]
+addNewUser l p base = base ++ [User (length base + 1) l p]
+
+
+getLogins :: [User] -> [Login]
+getLogins = foldl step []
+    where
+        step ls (User iD l p) = l : ls
+
+logInBase :: Login -> [User] -> Bool
+logInBase l base = elem l logs
+    where
+        logs = getLogins base
+
+funcSingUp :: Login -> Pwd -> [User] -> IO ()
+funcSingUp login pwd base = do
+    if not (logInBase login base)
+        then do
+            print $ last $ addNewUser login pwd base
+            print "Sucsess!"
+        else print "Login already exists"
+
+----------------------------------
+--------------Вход в систему -----
+
+-- TODO что делать после входа в систему? запомнить ID?
+
+funcSingIn :: Login -> Pwd -> [User] -> IO ()
+funcSingIn login pwd base = do
+    if logInBase login base
+        then do
+            print "Sucsess!"
+        else print "Login doesn't exist"
+----------------------------------
+
 readBase :: GenParams -> IO ()
 readBase (PrintRecipeByIngr xs) = do
-    content <- readFile "base.txt"
-    print " "
-    -- print $ getRecipesByIngr xs (linesToRecipes content)
+    print $ getRecipesByIngr xs (unsafePerformIO (giveMeBase "base.txt"))
 
 readBase (PrintRecipeByName name) = do
-	let (Recipe idu rat nam ingr t desc) = head (filter (\(Recipe _ _ name1 _ _ _) -> name == name1 ) (unsafePerformIO (giveMeBase "base.txt")))
-	putStrLn nam
-	putStrLn desc
+    let (Recipe idu rat nam ingr t desc) = head (filter (\(Recipe _ _ name1 _ _ _) -> name == name1 ) (unsafePerformIO (giveMeBase "base.txt")))
+    putStrLn nam
+    putStrLn desc
 
 readBase (FilterAll time) = do
-	let xs = filter (\(Recipe _ _ _ _ t _) -> t <= time ) (unsafePerformIO (giveMeBase "base.txt"))
-	putStrLn $ unlines $ mapM toStr' xs
-	where
-		toStr' (Recipe idu rat name _ t' _) = (show idu) ++ " " ++ (show rat) ++ " " ++ name ++ " " ++ (show t')
-	
+    let xs = filter (\(Recipe _ _ _ _ t _) -> t <= time ) (unsafePerformIO (giveMeBase "base.txt"))
+    putStrLn $ unlines $ mapM toStr' xs
+    where
+            toStr' (Recipe idu rat name _ t' _) = (show idu) ++ " " ++ (show rat) ++ " " ++ name ++ " " ++ (show t')
+
 readBase (FilterFound time) = undefined
-readBase (SignUp login) = undefined
-readBase (SignIn login pwd) = undefined
+
+readBase (SignUp login pwd) = do
+    funcSingUp login pwd (unsafePerformIO (giveMeAccounts "accounts.txt"))
+
+readBase (SignIn login pwd) = do
+    funcSingIn login pwd (unsafePerformIO (giveMeAccounts "accounts.txt"))
+
 readBase (Help) = do
-	putStrLn "Введите следующие команды"
-	putStrLn "print_recipes_by_ingredients     - выдает список рецептов по указанным ингридиентам"
-	putStrLn "print_recipe_by_name             - выдает описание рецепта по названию"
-	putStrLn "filter_all_by_cooktime           - выдает список рецептов, время готовки которых <= указанному числу минут"
-	putStrLn "filter_found_by_cooktime         - выдает список рецептов, удовлетворяющих вышим ингридиентам и время готовки которых <= указанному числу минут"
-	putStrLn "sign_up                          - входит в систему под указанным логином"
-	putStrLn "sign_in                          - регистрация пользователя с вводимым логином и паролем"
-	
+    putStrLn "Введите следующие команды"
+    putStrLn "print_recipes_by_ingredients     - выдает список рецептов по указанным ингридиентам"
+    putStrLn "print_recipe_by_name             - выдает описание рецепта по названию"
+    putStrLn "filter_all_by_cooktime           - выдает список рецептов, время готовки которых <= указанному числу минут"
+    putStrLn "filter_found_by_cooktime         - выдает список рецептов, удовлетворяющих вышим ингридиентам и время готовки которых <= указанному числу минут"
+    putStrLn "sign_up                          - входит в систему под указанным логином"
+    putStrLn "sign_in                          - регистрация пользователя с вводимым логином и паролем"
+
 --
 --
 askForCommand = do
