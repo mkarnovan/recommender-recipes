@@ -37,6 +37,12 @@ data GenParams = PrintRecipeByIngr Ingredients |
 -- TODO разобраться с error (выходит ли из приложения)
 -- сделать устойчивую проверку на ошибки
 
+accBaseFpath :: String
+accBaseFpath = "accounts.txt"
+
+recBaseFpath :: String
+recBaseFpath = "base.txt"
+
 --Глобальная переменная базы рецептов
 --Запись: giveMeBase "base.txt" >>= atomically.writeTVar globalRecipes
 --Чтение: readTVarIO globalRecipes
@@ -48,6 +54,14 @@ globalAccounts = unsafePerformIO $ newTVarIO []
 
 globalSignedID :: TVar Int
 globalSignedID = unsafePerformIO $ newTVarIO (-1)
+
+loadBases :: IO ()
+loadBases = giveMeAccounts accBaseFpath >>= atomically.writeTVar globalAccounts >>
+            giveMeBase recBaseFpath >>= atomically.writeTVar globalRecipes
+
+saveBases :: IO ()
+saveBases = readTVarIO globalAccounts >>= saveAccounts accBaseFpath >>
+            readTVarIO globalRecipes >>= saveBase recBaseFpath
 
 parseTask :: [String] -> Either String GenParams
 parseTask [] = Left "Incorrect command format"
@@ -182,3 +196,5 @@ askForCommand = do
         Left str -> do
                     print str
                     askForCommand
+
+main = loadBases >> askForCommand >> saveBases
