@@ -4,7 +4,11 @@ import Data.Either
 import System.Environment
 import DataDescription
 import System.IO.Unsafe
+import Control.Concurrent
+import Control.Concurrent.STM
+import Control.Monad
 import TheLoader
+
 
 -- формат команд
 -- print_recipes_by_ingredients ingr1 ingr2 ingr3 ...
@@ -32,6 +36,18 @@ data GenParams = PrintRecipeByIngr Ingredients |
 
 -- TODO разобраться с error (выходит ли из приложения)
 -- сделать устойчивую проверку на ошибки
+
+--Глобальная переменная базы рецептов
+--Запись: giveMeBase "base.txt" >>= atomically.writeTVar globalRecipes
+--Чтение: readTVarIO globalRecipes
+globalRecipes :: TVar [Recipe]
+globalRecipes = unsafePerformIO $ newTVarIO []
+
+globalAccounts :: TVar [User]
+globalAccounts = unsafePerformIO $ newTVarIO []
+
+globalSignedID :: TVar Int
+globalSignedID = unsafePerformIO $ newTVarIO (-1)
 
 parseTask :: [String] -> Either String GenParams
 parseTask [] = Left "Incorrect command format"
