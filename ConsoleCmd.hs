@@ -14,7 +14,6 @@ import TheLoader
 -- print_recipes_by_ingredients ingr1 ingr2 ingr3 ...
 -- print_recipe_by_name name_of_recipe
 -- filter_all_by_cooktime cook_time
--- filter_found_by_cooktime cook_time //фильтруем по времени приготовления результат Print_recipes_by_ingredients
 -- sign_up  //регистрация
 -- sign_in login pwd //вход
 -- help
@@ -32,7 +31,8 @@ data GenParams = PrintRecipeByIngr Ingredients |
                  FilterFound Time |
                  SignIn Login Pwd |
                  SignUp Login Pwd|
-                 Help
+                 Help |
+                 Quit
 
 -- TODO разобраться с error (выходит ли из приложения)
 -- сделать устойчивую проверку на ошибки
@@ -55,18 +55,17 @@ parseTask (mode : xs)
  |mode == "print_recipes_by_ingredients" = Right (PrintRecipeByIngr xs)
  |mode == "print_recipe_by_name" = Right (PrintRecipeByName $ first_arg xs)
  |mode == "filter_all_by_cooktime" = Right (FilterAll (read (first_arg xs) :: Int))
- |mode == "filter_found_by_cooktime" = Right (FilterFound (read (first_arg xs) :: Int))
  |mode == "sign_up" = Right (SignUp (first_arg xs) (pwd xs))
  |mode == "sign_in" = Right (SignIn (first_arg xs) (pwd xs))
  |mode == "help" = Right (Help)
+ |mode == "quit" = Right (Quit)
  |otherwise = Left "Incorrect command format"
     where
         first_arg xs = head xs
         pwd [x : password] = password
         pwd _ = error "incorrect data format"
---
--- -- data Recipe = Recipe IdUser Rating Name Ingredients Time Description
---
+
+-------------- Поиск по ингредиентам -----------------
 sortByOverlap (a,b) (c,d)
     | b > d = LT
     |otherwise = GT
@@ -80,8 +79,15 @@ getRecipesByIngr xs rs = map fst $ sortBy sortByOverlap (foldl step [] rs)
                 where
                     overlap = length( ingr `intersect` xs )
 
+getShortDescr :: Recipe -> String
+getShortDescr (Recipe iD rat name ingr t d) = name ++ " (" ++
+ (foldl1 (\acc cur -> acc ++ ", " ++ cur) ingr)
+ ++ ") "++ (show t) ++ " минут"
 
---------- Регистрация ---------
+getFullDescr :: Recipe -> String
+getFullDescr (Recipe iD rat name ingr t d) = name ++ ". "  ++ d
+------------------------------------------------------
+-------------- Регистрация ---------------------------
 
 addNewUser :: Login -> Pwd -> [User] -> [User]
 addNewUser l p base = base ++ [User (length base + 1) l p]
@@ -105,8 +111,8 @@ funcSingUp login pwd base = do
             print "Sucsess!"
         else print "Login already exists"
 
-----------------------------------
---------------Вход в систему -----
+--------------------------------------------------
+--------------Вход в систему ---------------------
 
 -- TODO что делать после входа в систему? запомнить ID?
 
@@ -116,11 +122,19 @@ funcSingIn login pwd base = do
         then do
             print "Sucsess!"
         else print "Login doesn't exist"
-----------------------------------
+-----------------------------------------------------
 
 readBase :: GenParams -> IO ()
 readBase (PrintRecipeByIngr xs) = do
-    print $ getRecipesByIngr xs (unsafePerformIO (giveMeBase "base.txt"))
+    if not (null found)
+        then do
+            putStrLn $ unlines $ map getShortDescr found
+            putStrLn "Для получения подробного описания введите номер рецепта"
+            x <- getLine
+            putStrLn $ getFullDescr (found !! ((read x :: Int)-1))
+    else putStrLn "Нет рецепта с заданными ингредиентами"
+        where
+            found = getRecipesByIngr xs (unsafePerformIO (giveMeBase "base.txt"))
 
 readBase (PrintRecipeByName name) = do
     let (Recipe idu rat nam ingr t desc) = head (filter (\(Recipe _ _ name1 _ _ _) -> name == name1 ) (unsafePerformIO (giveMeBase "base.txt")))
@@ -135,9 +149,6 @@ readBase (FilterAll time) = do
             findLogIn n = getLog (head ( filter (\(User n' _ _) -> n == n') (unsafePerformIO (giveMeAccounts "accounts.txt"))))
             getLog (User _ s _) = s
 
-
-readBase (FilterFound time) = undefined
-
 readBase (SignUp login pwd) = do
     funcSingUp login pwd (unsafePerformIO (giveMeAccounts "accounts.txt"))
 
@@ -146,21 +157,18 @@ readBase (SignIn login pwd) = do
 
 readBase (Help) = do
     putStrLn "Введите следующие команды"
-    putStrLn "print_recipes_by_ingredients     - выдает список рецептов по указанным ингридиентам"
+    putStrLn "print_recipes_by_ingredients     - выдает список рецептов по указанным ингредиентам"
     putStrLn "print_recipe_by_name             - выдает описание рецепта по названию"
-    putStrLn "filter_all_by_cooktime           - выдает список рецептов, время готовки которых <= указанному числу минут"
-    putStrLn "filter_found_by_cooktime         - выдает список рецептов, удовлетворяющих вышим ингридиентам и время готовки которых <= указанному числу минут"
+    putStrLn "filter_all_by_cooktime           - выдает список рецептов, время готовки которых <= указанного числа минут"
     putStrLn "sign_up                          - входит в систему под указанным логином"
     putStrLn "sign_in                          - регистрация пользователя с вводимым логином и паролем"
     putStrLn "quit                             - выход из программы"
 
-
 helpForSignIn = do
     putStrLn "Введите следующие команды"
-    putStrLn "print_recipes_by_ingredients     - выдает список рецептов по указанным ингридиентам"
+    putStrLn "print_recipes_by_ingredients     - выдает список рецептов по указанным ингредиентам"
     putStrLn "print_recipe_by_name             - выдает описание рецепта по названию"
-    putStrLn "filter_all_by_cooktime           - выдает список рецептов, время готовки которых <= указанному числу минут"
-    putStrLn "filter_found_by_cooktime         - выдает список рецептов, удовлетворяющих вышим ингридиентам и время готовки которых <= указанному числу минут"
+    putStrLn "filter_all_by_cooktime           - выдает список рецептов, время готовки которых <= указанного числа минут"
     putStrLn "sign_out                         - выход из системы"
 --
 --
@@ -168,7 +176,9 @@ askForCommand = do
     putStrLn "Bведите команду (help для посмотра списка доступных команд)"
     l <- getLine
     case parseTask (words l) of
-        Right gp -> readBase gp
+        Right gp -> do
+            readBase gp
+            askForCommand
         Left str -> do
                     print str
                     askForCommand
