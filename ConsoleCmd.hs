@@ -113,7 +113,7 @@ readBase (PrintRecipeByName name) = do
 
 readBase (FilterAll time) = do
     let xs = filter (\(Recipe _ _ _ _ t _) -> t <= time ) (unsafePerformIO (giveMeBase "base.txt"))
-    putStrLn $ unlines $ mapM toStr' xs
+    putStrLn $ unlines $ map toStr' xs
     where
             toStr' (Recipe idu rat name _ t' _) = (findLogIn idu) ++ " " ++ (show rat) ++ " " ++ name ++ " " ++ (show t')
             findLogIn n = getLog (head ( filter (\(User n' _ _) -> n == n') (unsafePerformIO (giveMeAccounts "accounts.txt"))))
