@@ -46,3 +46,23 @@ recipeToString (Recipe id rating name ingr time desc) =
     --show id ++ ";" ++ show rating ++ ";" ++ name ++ ";" ++ ingrlist ++ ";" ++ show time  ++";" ++ desc
     where
         ingrlist = foldl1 (\acc cur -> acc ++ ", " ++ cur) ingr
+
+
+--------------Парсер комманд---------------
+parseTask :: [String] -> Either String GenParams
+parseTask [] = Left "Incorrect command format"
+parseTask (mode : xs)
+ |mode == "filter_ingr" = Right (PrintRecipeByIngr xs)
+ |mode == "find_by_name" = Right (PrintRecipeByName $ first_arg xs)
+ |mode == "filter_time" = Right (FilterAll (read (first_arg xs) :: Int))
+ |mode == "sign_up" = Right (SignUp (first_arg xs) (pwd xs))
+ |mode == "sign_in" = Right (SignIn (first_arg xs) (pwd xs))
+ |mode == "add" = Right (Add (unlines xs))
+ |mode == "sign_out" = Right (SignOut)
+ |mode == "help" = Right (Help)
+ |mode == "quit" = Right (Quit)
+ |otherwise = Left "Incorrect command format"
+    where
+        first_arg xs = head xs
+        pwd [x : password] = password
+        pwd _ = error "incorrect data format"
