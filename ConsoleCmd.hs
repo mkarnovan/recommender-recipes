@@ -43,6 +43,9 @@ accBaseFpath = "accounts.txt"
 recBaseFpath :: String
 recBaseFpath = "base.txt"
 
+
+
+
 --Глобальная переменная базы рецептов
 --Запись: giveMeBase "base.txt" >>= atomically.writeTVar globalRecipes
 --Чтение: readTVarIO globalRecipes
@@ -51,7 +54,7 @@ globalRecipes = unsafePerformIO $ newTVarIO []
 
 globalAccounts :: TVar [User]
 globalAccounts = unsafePerformIO $ newTVarIO []
-
+--declareMVar "my-global-some-var" 0
 globalSignedID :: TVar Int
 globalSignedID = unsafePerformIO $ newTVarIO (-1)
 
@@ -62,6 +65,9 @@ loadBases = giveMeAccounts accBaseFpath >>= atomically.writeTVar globalAccounts 
 saveBases :: IO ()
 saveBases = readTVarIO globalAccounts >>= saveAccounts accBaseFpath >>
             readTVarIO globalRecipes >>= saveBase recBaseFpath
+
+addRecipe :: Recipe -> IO ()
+addRecipe nRecipe = readTVarIO globalRecipes >>= (\ee -> atomically (writeTVar globalRecipes (nRecipe:ee)))
 
 parseTask :: [String] -> Either String GenParams
 parseTask [] = Left "Incorrect command format"
@@ -139,18 +145,18 @@ funcSingIn login pwd base = do
 -----------------------------------------------------
 
 readBase :: GenParams -> IO ()
-readBase (PrintRecipeByIngr xs) = do
-    if not (null found)
-        then do
-            putStrLn $ unlines $ map getShortDescr found
-            putStrLn "Для получения подробного описания введите номер рецепта"
-            x <- getLine
-            putStrLn $ getFullDescr (found !! ((read x :: Int)-1))
-    else putStrLn "Нет рецепта с заданными ингредиентами"
-        where
-            found = getRecipesByIngr xs (unsafePerformIO (giveMeBase "base.txt"))
+readBase (PrintRecipeByIngr xs) = readTVarIO globalRecipes >>=
+           return .getRecipesByIngr xs >>= (\found -> if not (null found) 
+           then do
+             putStrLn $ unlines $ map getShortDescr found
+             putStrLn "Для получения подробного описания введите номер рецепта"
+             x <- getLine
+             putStrLn $ getFullDescr (found !! ((read x :: Int)-1))
+           else putStrLn "Нет рецепта с заданными ингредиентами")
+     
 
 readBase (PrintRecipeByName name) = do
+    c <- (readTVarIO globalSignedID)
     let (Recipe idu rat nam ingr t desc) = head (filter (\(Recipe _ _ name1 _ _ _) -> name == name1 ) (unsafePerformIO (giveMeBase "base.txt")))
     putStrLn nam
     putStrLn desc

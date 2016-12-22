@@ -41,6 +41,8 @@ userToString (User id name pass) = show id ++ " " ++ name ++ " " ++ pass
 --show для recipe-а
 recipeToString:: Recipe -> String
 recipeToString (Recipe id rating name ingr time desc) = 
-    show id ++ ";" ++ show rating ++ ";" ++ name ++ ";" ++ ingrlist ++ ";" ++ show time  ++";" ++ desc
+        foldl1 (\acc cur -> acc ++ ';':cur) 
+	[show id, show rating, name, ingrlist, show time, desc]
+    --show id ++ ";" ++ show rating ++ ";" ++ name ++ ";" ++ ingrlist ++ ";" ++ show time  ++";" ++ desc
     where
-        ingrlist = foldl (\acc cur -> acc ++ ", " ++ cur) (head ingr) (tail ingr)
+        ingrlist = foldl1 (\acc cur -> acc ++ ", " ++ cur) ingr
