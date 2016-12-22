@@ -59,7 +59,7 @@ globalAccounts = unsafePerformIO $ newTVarIO []
 
 --declareMVar "my-global-some-var" 0
 
---Глобальнаяч переменная ID авторизованного пользователя
+--Глобальная переменная ID авторизованного пользователя
 globalSignedID :: TVar Int
 globalSignedID = unsafePerformIO $ newTVarIO (-1)
 
@@ -139,33 +139,40 @@ funcSingUp login pwd base = do
     if not (logInBase login base)
         then do
             print $ last $ addNewUser login pwd base
-            print "Sucsess!"
+            print "Sucсess!"
         else print "Login already exists"
 
 --------------------------------------------------
 --------------Вход в систему ---------------------
 
 -- TODO что делать после входа в систему? запомнить ID?
+getIdByLog :: Login -> [User] -> IdUser
+getIdByLog login base = foldl step 0 base
+    where
+      step iD (User idu l p)
+        |l == login = idu
+        | otherwise = iD
 
 funcSingIn :: Login -> Pwd -> [User] -> IO ()
 funcSingIn login pwd base = do
     --putStrLn $ unlines $ map userToString base
     if logInBase login base
         then do
-            atomically $ writeTVar globalSignedID 777 -- сюда ид нада
+            atomically $ writeTVar globalSignedID (getIdByLog login base)
             putStrLn $ "Привет, " ++ login ++ "!"
         else putStrLn "Такого логина не существует, для регистрации используйте sign_up"
 -----------------------------------------------------
 
 -------------Добавление рецепта----------------------
-strToRecForSignIn :: String -> Either String Recipe
-strToRecForSignIn s
-    | idu == (-1) = Left "незарегистрированный пользователь"
-    | otherwise = Right (Recipe idu 0 nam (words ingr) t desc)
-    where
-        idu = (unsafePerformIO(readTVarIO globalSignedID))
-        [nam, ingr, t', desc] = splitOn ";" s
-        t = read t'
+strToRecForSignIn :: String -> IO ()
+strToRecForSignIn s = do
+    uid <- (readTVarIO globalSignedID)
+    if (uid /= (-1)) then do
+        let [nam, ingr, t', desc] = splitOn ";" s
+        let t = read t'
+        addRecipe(Recipe uid 0 nam (words ingr) t desc)
+    else
+        putStrLn "Для добавления рецепта требуется авторизация."
 -----------------------------------------------------
 readBase :: GenParams -> IO ()
 readBase (PrintRecipeByIngr xs) = readTVarIO globalRecipes >>=
