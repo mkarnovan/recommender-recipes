@@ -1,6 +1,7 @@
 import Data.List
 import Data.String
 import Data.Either
+import Data.List.Split
 import System.Environment
 import DataDescription
 import System.IO.Unsafe
@@ -49,6 +50,18 @@ recBaseFpath = "base.txt"
 --Глобальная переменная базы рецептов
 --Запись: giveMeBase "base.txt" >>= atomically.writeTVar globalRecipes
 --Чтение: readTVarIO globalRecipes
+
+--Добавление рецепта
+
+strToRecForSignIn :: String -> Either String Recipe
+strToRecForSignIn s
+	| idu == (-1) = Left "незарегистрированный пользователь" 
+	| otherwise = Right (Recipe idu 0 nam (words ingr) t desc)
+	where
+		idu = (unsafePerformIO(readTVarIO globalSignedID))
+		[nam, ingr, t', desc] = splitOn ";" s
+		t = read t'
+
 globalRecipes :: TVar [Recipe]
 globalRecipes = unsafePerformIO $ newTVarIO []
 
