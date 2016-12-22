@@ -55,12 +55,12 @@ recBaseFpath = "base.txt"
 
 strToRecForSignIn :: String -> Either String Recipe
 strToRecForSignIn s
-	| idu == (-1) = Left "незарегистрированный пользователь" 
-	| otherwise = Right (Recipe idu 0 nam (words ingr) t desc)
-	where
-		idu = (unsafePerformIO(readTVarIO globalSignedID))
-		[nam, ingr, t', desc] = splitOn ";" s
-		t = read t'
+    | idu == (-1) = Left "незарегистрированный пользователь"
+    | otherwise = Right (Recipe idu 0 nam (words ingr) t desc)
+    where
+        idu = (unsafePerformIO(readTVarIO globalSignedID))
+        [nam, ingr, t', desc] = splitOn ";" s
+        t = read t'
 
 globalRecipes :: TVar [Recipe]
 globalRecipes = unsafePerformIO $ newTVarIO []
@@ -85,9 +85,9 @@ addRecipe nRecipe = readTVarIO globalRecipes >>= (\ee -> atomically (writeTVar g
 parseTask :: [String] -> Either String GenParams
 parseTask [] = Left "Incorrect command format"
 parseTask (mode : xs)
- |mode == "print_recipes_by_ingredients" = Right (PrintRecipeByIngr xs)
- |mode == "print_recipe_by_name" = Right (PrintRecipeByName $ first_arg xs)
- |mode == "filter_all_by_cooktime" = Right (FilterAll (read (first_arg xs) :: Int))
+ |mode == "filter_ingr" = Right (PrintRecipeByIngr xs)
+ |mode == "find_by_name" = Right (PrintRecipeByName $ first_arg xs)
+ |mode == "filter_time" = Right (FilterAll (read (first_arg xs) :: Int))
  |mode == "sign_up" = Right (SignUp (first_arg xs) (pwd xs))
  |mode == "sign_in" = Right (SignIn (first_arg xs) (pwd xs))
  |mode == "help" = Right (Help)
@@ -159,14 +159,14 @@ funcSingIn login pwd base = do
 
 readBase :: GenParams -> IO ()
 readBase (PrintRecipeByIngr xs) = readTVarIO globalRecipes >>=
-           return .getRecipesByIngr xs >>= (\found -> if not (null found) 
+           return .getRecipesByIngr xs >>= (\found -> if not (null found)
            then do
              putStrLn $ unlines $ map getShortDescr found
              putStrLn "Для получения подробного описания введите номер рецепта"
              x <- getLine
              putStrLn $ getFullDescr (found !! ((read x :: Int)-1))
            else putStrLn "Нет рецепта с заданными ингредиентами")
-     
+
 
 readBase (PrintRecipeByName name) = do
     c <- (readTVarIO globalSignedID)
