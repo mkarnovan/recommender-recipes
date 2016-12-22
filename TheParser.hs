@@ -9,7 +9,7 @@ import DataDescription
 --Парсер строки
 strToRecipe :: String -> Recipe
 strToRecipe str = Recipe idu rat name ingr t desc
-	where
+   where
 		[idu',rat',name',ingr',t',desc'] = splitOn ";" str
 		idu = read idu'
 		rat = read rat'
@@ -64,5 +64,5 @@ parseTask (mode : xs)
  |otherwise = Left "Incorrect command format"
     where
         first_arg xs = head xs
-        pwd [x : password] = password
+        pwd [x,password] = password
         pwd _ = error "incorrect data format"
