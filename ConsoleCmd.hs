@@ -38,21 +38,15 @@ data GenParams = PrintRecipeByIngr Ingredients |
 -- TODO разобраться с error (выходит ли из приложения)
 -- сделать устойчивую проверку на ошибки
 
+--путь к аккунтам
 accBaseFpath :: String
 accBaseFpath = "accounts.txt"
 
+--путь к базе
 recBaseFpath :: String
 recBaseFpath = "base.txt"
 
-
-
-
---Глобальная переменная базы рецептов
---Запись: giveMeBase "base.txt" >>= atomically.writeTVar globalRecipes
---Чтение: readTVarIO globalRecipes
-
 --Добавление рецепта
-
 strToRecForSignIn :: String -> Either String Recipe
 strToRecForSignIn s
     | idu == (-1) = Left "незарегистрированный пользователь"
@@ -62,26 +56,35 @@ strToRecForSignIn s
         [nam, ingr, t', desc] = splitOn ";" s
         t = read t'
 
+--Глобальная переменная базы рецептов
 globalRecipes :: TVar [Recipe]
 globalRecipes = unsafePerformIO $ newTVarIO []
 
+--Глобальная переменная базы аккаунтов
 globalAccounts :: TVar [User]
 globalAccounts = unsafePerformIO $ newTVarIO []
+
 --declareMVar "my-global-some-var" 0
+
+--Глобальнаяч переменная ID авторизованного пользователя 
 globalSignedID :: TVar Int
 globalSignedID = unsafePerformIO $ newTVarIO (-1)
 
+--Загрузка баз в глобальные переменные
 loadBases :: IO ()
 loadBases = giveMeAccounts accBaseFpath >>= atomically.writeTVar globalAccounts >>
             giveMeBase recBaseFpath >>= atomically.writeTVar globalRecipes
 
+--Сохранение баз в файл
 saveBases :: IO ()
 saveBases = readTVarIO globalAccounts >>= saveAccounts accBaseFpath >>
             readTVarIO globalRecipes >>= saveBase recBaseFpath
 
+--Добавление рецепта в глобальную базу
 addRecipe :: Recipe -> IO ()
 addRecipe nRecipe = readTVarIO globalRecipes >>= (\ee -> atomically (writeTVar globalRecipes (nRecipe:ee)))
 
+--Парсер комманд
 parseTask :: [String] -> Either String GenParams
 parseTask [] = Left "Incorrect command format"
 parseTask (mode : xs)
@@ -111,7 +114,7 @@ getRecipesByIngr xs rs = map fst $ sortBy sortByOverlap (foldl step [] rs)
             |otherwise = ls
                 where
                     overlap = length( ingr `intersect` xs )
-
+--
 getShortDescr :: Recipe -> String
 getShortDescr (Recipe iD rat name ingr t d) = name ++ " (" ++
  (foldl1 (\acc cur -> acc ++ ", " ++ cur) ingr)
@@ -153,6 +156,7 @@ funcSingIn :: Login -> Pwd -> [User] -> IO ()
 funcSingIn login pwd base = do
     if logInBase login base
         then do
+	    atomically $ writeTVar globalSignedID 777 -- сюда ид нада
             print "Sucsess!"
         else print "Login doesn't exist"
 -----------------------------------------------------
@@ -182,11 +186,9 @@ readBase (FilterAll time) = do
             findLogIn n = getLog (head ( filter (\(User n' _ _) -> n == n') (unsafePerformIO (giveMeAccounts "accounts.txt"))))
             getLog (User _ s _) = s
 
-readBase (SignUp login pwd) = do
-    funcSingUp login pwd (unsafePerformIO (giveMeAccounts "accounts.txt"))
+readBase (SignUp login pwd) =  readTVarIO globalAccounts >>= funcSingUp login pwd
 
-readBase (SignIn login pwd) = do
-    funcSingIn login pwd (unsafePerformIO (giveMeAccounts "accounts.txt"))
+readBase (SignIn login pwd) = readTVarIO globalAccounts >>= funcSingIn login pwd
 
 readBase (Help) = do
     putStrLn "Введите следующие команды"
