@@ -32,6 +32,8 @@ data GenParams = PrintRecipeByIngr Ingredients |
                  FilterFound Time |
                  SignIn Login Pwd |
                  SignUp Login Pwd|
+                 Add String |
+                 SignOut |
                  Help |
                  Quit
 
@@ -46,16 +48,6 @@ accBaseFpath = "accounts.txt"
 recBaseFpath :: String
 recBaseFpath = "base.txt"
 
---Добавление рецепта
-strToRecForSignIn :: String -> Either String Recipe
-strToRecForSignIn s
-    | idu == (-1) = Left "незарегистрированный пользователь"
-    | otherwise = Right (Recipe idu 0 nam (words ingr) t desc)
-    where
-        idu = (unsafePerformIO(readTVarIO globalSignedID))
-        [nam, ingr, t', desc] = splitOn ";" s
-        t = read t'
-
 --Глобальная переменная базы рецептов
 globalRecipes :: TVar [Recipe]
 globalRecipes = unsafePerformIO $ newTVarIO []
@@ -66,7 +58,7 @@ globalAccounts = unsafePerformIO $ newTVarIO []
 
 --declareMVar "my-global-some-var" 0
 
---Глобальнаяч переменная ID авторизованного пользователя 
+--Глобальнаяч переменная ID авторизованного пользователя
 globalSignedID :: TVar Int
 globalSignedID = unsafePerformIO $ newTVarIO (-1)
 
@@ -84,7 +76,7 @@ saveBases = readTVarIO globalAccounts >>= saveAccounts accBaseFpath >>
 addRecipe :: Recipe -> IO ()
 addRecipe nRecipe = readTVarIO globalRecipes >>= (\ee -> atomically (writeTVar globalRecipes (nRecipe:ee)))
 
---Парсер комманд
+--------------Парсер комманд---------------
 parseTask :: [String] -> Either String GenParams
 parseTask [] = Left "Incorrect command format"
 parseTask (mode : xs)
@@ -93,6 +85,8 @@ parseTask (mode : xs)
  |mode == "filter_time" = Right (FilterAll (read (first_arg xs) :: Int))
  |mode == "sign_up" = Right (SignUp (first_arg xs) (pwd xs))
  |mode == "sign_in" = Right (SignIn (first_arg xs) (pwd xs))
+ |mode == "add" = Right (Add (unlines xs))
+ |mode == "sign_out" = Right (SignOut)
  |mode == "help" = Right (Help)
  |mode == "quit" = Right (Quit)
  |otherwise = Left "Incorrect command format"
@@ -156,11 +150,21 @@ funcSingIn :: Login -> Pwd -> [User] -> IO ()
 funcSingIn login pwd base = do
     if logInBase login base
         then do
-	    atomically $ writeTVar globalSignedID 777 -- сюда ид нада
-            print "Sucsess!"
-        else print "Login doesn't exist"
+            atomically $ writeTVar globalSignedID 777 -- сюда ид нада
+            putStrLn $ "Привет, " ++ login ++ "!"
+        else putStrLn "Такого логина не существует, для регистрации используйте sign_up"
 -----------------------------------------------------
 
+-------------Добавление рецепта----------------------
+strToRecForSignIn :: String -> Either String Recipe
+strToRecForSignIn s
+    | idu == (-1) = Left "незарегистрированный пользователь"
+    | otherwise = Right (Recipe idu 0 nam (words ingr) t desc)
+    where
+        idu = (unsafePerformIO(readTVarIO globalSignedID))
+        [nam, ingr, t', desc] = splitOn ";" s
+        t = read t'
+-----------------------------------------------------
 readBase :: GenParams -> IO ()
 readBase (PrintRecipeByIngr xs) = readTVarIO globalRecipes >>=
            return .getRecipesByIngr xs >>= (\found -> if not (null found)
@@ -191,19 +195,18 @@ readBase (SignUp login pwd) =  readTVarIO globalAccounts >>= funcSingUp login pw
 readBase (SignIn login pwd) = readTVarIO globalAccounts >>= funcSingIn login pwd
 
 readBase (Help) = do
-    putStrLn "Введите следующие команды"
-    putStrLn "print_recipes_by_ingredients     - выдает список рецептов по указанным ингредиентам"
-    putStrLn "print_recipe_by_name             - выдает описание рецепта по названию"
-    putStrLn "filter_all_by_cooktime           - выдает список рецептов, время готовки которых <= указанного числа минут"
+    putStrLn "filter_ingr                       - выдает список рецептов по указанным ингредиентам"
+    putStrLn "find_by_name                      - выдает описание рецепта по названию"
+    putStrLn "filter_time                       - выдает список рецептов, время готовки которых <= указанного числа минут"
     putStrLn "sign_up                          - входит в систему под указанным логином"
     putStrLn "sign_in                          - регистрация пользователя с вводимым логином и паролем"
     putStrLn "quit                             - выход из программы"
 
 helpForSignIn = do
     putStrLn "Введите следующие команды"
-    putStrLn "print_recipes_by_ingredients     - выдает список рецептов по указанным ингредиентам"
-    putStrLn "print_recipe_by_name             - выдает описание рецепта по названию"
-    putStrLn "filter_all_by_cooktime           - выдает список рецептов, время готовки которых <= указанного числа минут"
+    putStrLn "filter_ingr                       - выдает список рецептов по указанным ингредиентам"
+    putStrLn "find_by_name                      - выдает описание рецепта по названию"
+    putStrLn "filter_time                       - выдает список рецептов, время готовки которых <= указанного числа минут"
     putStrLn "sign_out                         - выход из системы"
 --
 --
@@ -212,7 +215,7 @@ askForCommand = do
     l <- getLine
     case parseTask (words l) of
         Right (Quit) -> do
-            putStrLn ""
+            putStrLn "Пока! :)"
         Right gp -> do
             readBase gp
             askForCommand
