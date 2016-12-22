@@ -43,7 +43,6 @@ recipeToString:: Recipe -> String
 recipeToString (Recipe id rating name ingr time desc) =
         foldl1 (\acc cur -> acc ++ ';':cur)
 	[show id, show rating, name, ingrlist, show time, desc]
-    --show id ++ ";" ++ show rating ++ ";" ++ name ++ ";" ++ ingrlist ++ ";" ++ show time  ++";" ++ desc
     where
         ingrlist = foldl1 (\acc cur -> acc ++ ", " ++ cur) ingr
 

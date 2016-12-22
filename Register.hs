@@ -11,7 +11,6 @@ import TheLoader
 addNewUser :: Login -> Pwd -> [User] -> [User]
 addNewUser l p base = base ++ [User (length base + 1) l p]
 
-
 getLogins :: [User] -> [Login]
 getLogins = foldl step []
     where
@@ -45,7 +44,6 @@ getIdByLog login base = foldl step 0 base
 
 funcSingIn :: Login -> Pwd -> [User] -> IO ()
 funcSingIn login pwd base = do
-    --putStrLn $ unlines $ map userToString base
     if checkUser login pwd base
         then do
             atomically $ writeTVar globalSignedID (getIdByLog login base)

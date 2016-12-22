@@ -6,8 +6,6 @@ import GlobalVars
 import Reciepts
 import ReadBase
 
-
---
 askForCommand = do
     putStrLn "Bведите команду (help для посмотра списка доступных команд)"
     l <- getLine
