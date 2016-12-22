@@ -9,7 +9,7 @@ import DataDescription
 --Парсер строки
 strToRecipe :: String -> Recipe
 strToRecipe str = Recipe idu rat name ingr t desc
-	where 
+	where
 		[idu',rat',name',ingr',t',desc'] = splitOn ";" str
 		idu = read idu'
 		rat = read rat'
@@ -26,7 +26,7 @@ linesToRecipes = map strToRecipe
 --Парсер строки
 strToUser :: String -> User
 strToUser str = User id uname upass
-	where 
+	where
 		[id',uname,upass] = words str
 		id = read id'
 
@@ -40,8 +40,8 @@ userToString (User id name pass) = show id ++ " " ++ name ++ " " ++ pass
 
 --show для recipe-а
 recipeToString:: Recipe -> String
-recipeToString (Recipe id rating name ingr time desc) = 
-        foldl1 (\acc cur -> acc ++ ';':cur) 
+recipeToString (Recipe id rating name ingr time desc) =
+        foldl1 (\acc cur -> acc ++ ';':cur)
 	[show id, show rating, name, ingrlist, show time, desc]
     --show id ++ ";" ++ show rating ++ ";" ++ name ++ ";" ++ ingrlist ++ ";" ++ show time  ++";" ++ desc
     where
@@ -52,13 +52,13 @@ recipeToString (Recipe id rating name ingr time desc) =
 parseTask :: [String] -> Either String GenParams
 parseTask [] = Left "Incorrect command format"
 parseTask (mode : xs)
- |mode == "filter_ingr" = Right (PrintRecipeByIngr xs)
- |mode == "find_by_name" = Right (PrintRecipeByName $ first_arg xs)
- |mode == "filter_time" = Right (FilterAll (read (first_arg xs) :: Int))
- |mode == "sign_up" = Right (SignUp (first_arg xs) (pwd xs))
- |mode == "sign_in" = Right (SignIn (first_arg xs) (pwd xs))
+ |mode == "filterIngr" = Right (PrintRecipeByIngr xs)
+ |mode == "findByName" = Right (PrintRecipeByName $ first_arg xs)
+ |mode == "filterByTime" = Right (FilterAll (read (first_arg xs) :: Int))
+ |mode == "signUp" = Right (SignUp (first_arg xs) (pwd xs))
+ |mode == "signIn" = Right (SignIn (first_arg xs) (pwd xs))
  |mode == "add" = Right (Add (unlines xs))
- |mode == "sign_out" = Right (SignOut)
+ |mode == "signOut" = Right (SignOut)
  |mode == "help" = Right (Help)
  |mode == "quit" = Right (Quit)
  |otherwise = Left "Incorrect command format"

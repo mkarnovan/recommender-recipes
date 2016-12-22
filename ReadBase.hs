@@ -16,13 +16,16 @@ readBase :: GenParams -> IO ()
 readBase (PrintRecipeByIngr xs) = readTVarIO globalRecipes >>=
            return .getRecipesByIngr xs >>= (\found -> if not (null found)
            then do
-             putStrLn $ unlines $ map getShortDescr found
+             let strs = map getShortDescr found
+             putStrLn $ unlines $ map func $ zipWith (,) [1..(length strs)] strs
              putStrLn "Для получения подробного описания введите номер рецепта"
              x <- getLine
-             if (isNumber x) then 
+             if (isNumber x) then
                putStrLn $ getFullDescr (found !! ((read x :: Int)-1))
              else putStrLn "Неверный номер"
            else putStrLn "Нет рецепта с заданными ингредиентами")
+           where
+             func (n,s) = (show n) ++ ") " ++ s
 
 
 readBase (PrintRecipeByName name) = do
@@ -46,10 +49,9 @@ readBase (SignUp login pwd) =  readTVarIO globalAccounts >>= funcSingUp login pw
 readBase (SignIn login pwd) = readTVarIO globalAccounts >>= funcSingIn login pwd
 
 readBase (Help) = do
-    putStrLn "filter_ingr                       - выдает список рецептов по указанным ингредиентам"
-    putStrLn "find_by_name                      - выдает описание рецепта по названию"
-    putStrLn "filter_time                       - выдает список рецептов, время готовки которых <= указанного числа минут"
-    putStrLn "sign_up                          - входит в систему под указанным логином"
-    putStrLn "sign_in                          - регистрация пользователя с вводимым логином и паролем"
+    putStrLn "filterIngr                       - выдает список рецептов по указанным ингредиентам"
+    putStrLn "findByName                       - выдает описание рецепта по названию"
+    putStrLn "filterByTime                     - выдает список рецептов, время готовки которых <= указанного числа минут"
+    putStrLn "signUp                           - входит в систему под указанным логином"
+    putStrLn "signIn                           - регистрация пользователя с вводимым логином и паролем"
     putStrLn "quit                             - выход из программы"
-

@@ -33,7 +33,9 @@ funcSingUp login pwd base = do
 --------------------------------------------------
 --------------Вход в систему ---------------------
 
--- TODO что делать после входа в систему? запомнить ID?
+checkUser :: Login -> Pwd -> [User] -> Bool
+checkUser login pwd base = not ( null ( filter (\(User _ l p) -> l == login && p == pwd) base) )
+
 getIdByLog :: Login -> [User] -> IdUser
 getIdByLog login base = foldl step 0 base
     where
@@ -44,9 +46,9 @@ getIdByLog login base = foldl step 0 base
 funcSingIn :: Login -> Pwd -> [User] -> IO ()
 funcSingIn login pwd base = do
     --putStrLn $ unlines $ map userToString base
-    if logInBase login base
+    if checkUser login pwd base
         then do
             atomically $ writeTVar globalSignedID (getIdByLog login base)
             putStrLn $ "Привет, " ++ login ++ "!"
-        else putStrLn "Такого логина не существует, для регистрации используйте sign_up"
+        else putStrLn "Такого логина и пароля не существует, для регистрации используйте sign_up"
 -----------------------------------------------------
