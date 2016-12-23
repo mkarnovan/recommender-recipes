@@ -26,8 +26,8 @@ funcSingUp login pwd base = do
     if not (logInBase login base)
         then do
             print $ last $ addNewUser login pwd base
-            print "Sucсess!"
-        else print "Login already exists"
+            putStrLn $ "Все отлично!" ++ login ++ ", вы зарегистрировались."
+        else putStrLn $ "Такой логин уже существует."
 
 --------------------------------------------------
 --------------Вход в систему ---------------------
