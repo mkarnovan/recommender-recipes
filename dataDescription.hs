@@ -1,5 +1,8 @@
 module DataDescription where
 
+import Control.Exception
+import Data.Typeable
+
 type IdUser = Int;
 type Rating = Int;
 type Name = String;
@@ -23,3 +26,6 @@ data GenParams = PrintRecipeByIngr Ingredients |
                  SignOut |
                  Help |
                  Quit
+
+data FormatException = IncorrectBase deriving (Show, Typeable)
+instance Exception FormatException
