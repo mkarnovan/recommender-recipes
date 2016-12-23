@@ -60,7 +60,7 @@ parseTask (mode : xs)
  |mode == "filterByTime" = Right (FilterAll (read (first_arg xs) :: Int))
  |mode == "signUp" = Right (SignUp (first_arg xs) (pwd xs))
  |mode == "signIn" = Right (SignIn (first_arg xs) (pwd xs))
- |mode == "add" = Right (Add (unlines xs))
+ |mode == "add" = Right (Add (unwords xs))
  |otherwise = Left "Неверный формат команды. Для просмотра доступных команд введите help"
     where
         first_arg xs = head xs

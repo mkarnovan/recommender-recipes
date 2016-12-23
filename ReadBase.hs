@@ -31,7 +31,7 @@ readBase (PrintRecipeByIngr xs) = do
                putStrLn $ getFullDescr curRec
              else putStrLn "Неверный номер"
            else putStrLn "Нет рецепта с заданными ингредиентами"
-             
+
 
 
 readBase (PrintRecipeByName name) = do
@@ -52,6 +52,7 @@ readBase (FilterAll time) = do
     let xs = filter (\(Recipe _ _ _ _ t _) -> t <= time ) recBase
     putStrLn $ unlines $ map toStr' xs
 
+readBase (Add str) = addFunc str
 
 readBase (SignUp login pwd) =  readIORef globalAccounts >>= funcSingUp login pwd
 

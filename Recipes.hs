@@ -10,7 +10,6 @@ import GlobalVars
 addRecipe :: Recipe -> IO ()
 addRecipe nRecipe = readIORef globalRecipes >>= (\ee -> writeIORef globalRecipes (nRecipe:ee))
 
-
 -------------- Поиск по ингредиентам -----------------
 sortByOverlap (a,b) (c,d)
     | b > d = LT
@@ -35,8 +34,8 @@ getFullDescr (Recipe iD rat name ingr t d) = name ++ ". "  ++ d
 
 
 -------------Добавление рецепта----------------------
-strToRecForSignIn :: String -> IO ()
-strToRecForSignIn s = do
+addFunc :: String -> IO ()
+addFunc s = do
     uid <- (readIORef globalSignedID)
     if (uid /= (-1)) then do
         let [nam, ingr, t', desc] = splitOn ";" s
