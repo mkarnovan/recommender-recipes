@@ -8,8 +8,6 @@ import TheLoader
 ------------------------------------------------------
 -------------- Регистрация ---------------------------
 
-addNewUser :: Login -> Pwd -> [User] -> [User]
-addNewUser l p base = base ++ [User (length base + 1) l p]
 
 getLogins :: [User] -> [Login]
 getLogins = foldl step []
@@ -25,8 +23,8 @@ funcSingUp :: Login -> Pwd -> [User] -> IO ()
 funcSingUp login pwd base = do
     if not (logInBase login base)
         then do
-            print $ last $ addNewUser login pwd base
-            putStrLn $ "Все отлично!" ++ login ++ ", вы зарегистрировались."
+            writeIORef globalAccounts (base ++ [User (length base ) login pwd])
+            putStrLn $ "Все отлично!" ++ login ++ ", вы зарегистрировались."            
         else putStrLn $ "Такой логин уже существует."
 
 --------------------------------------------------
