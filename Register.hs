@@ -1,6 +1,6 @@
 module Register where
 
-import Control.Concurrent.STM
+import Data.IORef
 import DataDescription
 import GlobalVars
 import TheLoader
@@ -46,12 +46,12 @@ funcSingIn :: Login -> Pwd -> [User] -> IO ()
 funcSingIn login pwd base = do
     if checkUser login pwd base
         then do
-            atomically $ writeTVar globalSignedID (getIdByLog login base)
+            writeIORef globalSignedID (getIdByLog login base)
             putStrLn $ "Привет, " ++ login ++ "!"
         else putStrLn "Такого логина и пароля не существует, для регистрации используйте sign_up"
 
 funcSingOut :: IO ()
 funcSingOut = do
-    atomically$ writeTVar globalSignedID (-1)
+    writeIORef globalSignedID (-1)
     putStrLn $ "Вы вышли из учетной записи."
 -----------------------------------------------------

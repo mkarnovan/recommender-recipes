@@ -4,7 +4,7 @@ import DataDescription
 import Register
 import GlobalVars
 import Reciepts
-import Control.Concurrent.STM
+import Data.IORef
 
 isNumber :: String -> Bool
 isNumber str =
@@ -13,7 +13,7 @@ isNumber str =
       _         -> False
 
 readBase :: GenParams -> IO ()
-readBase (PrintRecipeByIngr xs) = readTVarIO globalRecipes >>=
+readBase (PrintRecipeByIngr xs) = readIORef globalRecipes >>=
            return .getRecipesByIngr xs >>= (\found -> if not (null found)
            then do
              let strs = map getShortDescr found
@@ -29,17 +29,17 @@ readBase (PrintRecipeByIngr xs) = readTVarIO globalRecipes >>=
 
 
 readBase (PrintRecipeByName name) = do
-    recBase <- (readTVarIO globalRecipes)
+    recBase <- (readIORef globalRecipes)
     let curRec = head (filter (\(Recipe _ _ name1 _ _ _) -> name == name1 ) recBase)
     let (Recipe idu rat nam ingr t desc) = curRec
     let newBase = (Recipe idu (rat+1) nam ingr t desc) : (filter (\(Recipe _ _ name1 _ _ _) -> name1 /= name) recBase)
-    atomically $ writeTVar globalRecipes newBase
+    writeIORef globalRecipes newBase
     putStrLn nam
     putStrLn desc
 
 readBase (FilterAll time) = do
-    accBase <- (readTVarIO globalAccounts)
-    recBase <- (readTVarIO globalRecipes)
+    accBase <- (readIORef globalAccounts)
+    recBase <- (readIORef globalRecipes)
     let getLog (User _ s _) = s
     let findLogIn = \n -> getLog (head ( filter (\(User n' _ _) -> n == n') accBase))
     let toStr' = \(Recipe idu rat name _ t' _) -> (findLogIn idu) ++ " " ++ (show rat) ++ " " ++ name ++ " " ++ (show t')
@@ -47,9 +47,9 @@ readBase (FilterAll time) = do
     putStrLn $ unlines $ map toStr' xs
 
 
-readBase (SignUp login pwd) =  readTVarIO globalAccounts >>= funcSingUp login pwd
+readBase (SignUp login pwd) =  readIORef globalAccounts >>= funcSingUp login pwd
 
-readBase (SignIn login pwd) = readTVarIO globalAccounts >>= funcSingIn login pwd
+readBase (SignIn login pwd) = readIORef globalAccounts >>= funcSingIn login pwd
 
 readBase (SignOut) = funcSingOut
 

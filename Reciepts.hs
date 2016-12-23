@@ -2,13 +2,13 @@ module Reciepts where
 
 import Data.List
 import Data.List.Split
-import Control.Concurrent.STM
+import Data.IORef
 import DataDescription
 import GlobalVars
 
 --Добавление рецепта в глобальную базу
 addRecipe :: Recipe -> IO ()
-addRecipe nRecipe = readTVarIO globalRecipes >>= (\ee -> atomically (writeTVar globalRecipes (nRecipe:ee)))
+addRecipe nRecipe = readIORef globalRecipes >>= (\ee -> writeIORef globalRecipes (nRecipe:ee))
 
 
 -------------- Поиск по ингредиентам -----------------
@@ -37,7 +37,7 @@ getFullDescr (Recipe iD rat name ingr t d) = name ++ ". "  ++ d
 -------------Добавление рецепта----------------------
 strToRecForSignIn :: String -> IO ()
 strToRecForSignIn s = do
-    uid <- (readTVarIO globalSignedID)
+    uid <- (readIORef globalSignedID)
     if (uid /= (-1)) then do
         let [nam, ingr, t', desc] = splitOn ";" s
         let t = read t'

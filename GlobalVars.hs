@@ -1,7 +1,7 @@
 module GlobalVars where
 
 import System.IO.Unsafe
-import Control.Concurrent.STM
+import Data.IORef
 import DataDescription
 import TheLoader
 
@@ -14,25 +14,25 @@ recBaseFpath :: String
 recBaseFpath = "base.txt"
 
 --Глобальная переменная базы рецептов
-globalRecipes :: TVar [Recipe]
-globalRecipes = unsafePerformIO $ newTVarIO []
+globalRecipes :: IORef [Recipe]
+globalRecipes = unsafePerformIO $ newIORef []
 
 --Глобальная переменная базы аккаунтов
-globalAccounts :: TVar [User]
-globalAccounts = unsafePerformIO $ newTVarIO []
+globalAccounts :: IORef [User]
+globalAccounts = unsafePerformIO $ newIORef []
 
 --declareMVar "my-global-some-var" 0
 
 --Глобальная переменная ID авторизованного пользователя
-globalSignedID :: TVar Int
-globalSignedID = unsafePerformIO $ newTVarIO (-1)
+globalSignedID :: IORef Int
+globalSignedID = unsafePerformIO $ newIORef (-1)
 
 --Загрузка баз в глобальные переменные
 loadBases :: IO ()
-loadBases = giveMeAccounts accBaseFpath >>= atomically.writeTVar globalAccounts >>
-            giveMeBase recBaseFpath >>= atomically.writeTVar globalRecipes
+loadBases = giveMeAccounts accBaseFpath >>= writeIORef globalAccounts >>
+            giveMeBase recBaseFpath >>= writeIORef globalRecipes
 
 --Сохранение баз в файл
 saveBases :: IO ()
-saveBases = readTVarIO globalAccounts >>= saveAccounts accBaseFpath >>
-            readTVarIO globalRecipes >>= saveBase recBaseFpath
+saveBases = readIORef globalAccounts >>= saveAccounts accBaseFpath >>
+            readIORef globalRecipes >>= saveBase recBaseFpath
