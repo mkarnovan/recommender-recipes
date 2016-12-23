@@ -51,15 +51,16 @@ recipeToString (Recipe id rating name ingr time desc) =
 parseTask :: [String] -> Either String GenParams
 parseTask [] = Left "Неверный формат команды. Для просмотра доступных команд введите help"
 parseTask (mode : xs)
+ |mode == "signOut" = Right (SignOut)
+ |mode == "help" = Right (Help)
+ |mode == "quit" = Right (Quit)
+ |null xs = Left "Отсутсвтвуют параметры команды"
  |mode == "filterIngr" = Right (PrintRecipeByIngr xs)
  |mode == "findByName" = Right (PrintRecipeByName (unwords xs))
  |mode == "filterByTime" = Right (FilterAll (read (first_arg xs) :: Int))
  |mode == "signUp" = Right (SignUp (first_arg xs) (pwd xs))
  |mode == "signIn" = Right (SignIn (first_arg xs) (pwd xs))
  |mode == "add" = Right (Add (unlines xs))
- |mode == "signOut" = Right (SignOut)
- |mode == "help" = Right (Help)
- |mode == "quit" = Right (Quit)
  |otherwise = Left "Неверный формат команды. Для просмотра доступных команд введите help"
     where
         first_arg xs = head xs
