@@ -4,6 +4,12 @@ import System.IO.Unsafe
 import Data.IORef
 import DataDescription
 import TheLoader
+import Data.List
+
+sortRec :: [Recipe]-> IO [Recipe]
+sortRec xs = return $ sortBy sorting xs
+  where
+    sorting (Recipe _ rat1 _ _ _ _) (Recipe _ rat2 _ _ _ _) = compare rat2 rat1
 
 --путь к аккунтам
 accBaseFpath :: String
@@ -30,7 +36,7 @@ globalSignedID = unsafePerformIO $ newIORef (-1)
 --Загрузка баз в глобальные переменные
 loadBases :: IO ()
 loadBases = giveMeAccounts accBaseFpath >>= writeIORef globalAccounts >>
-            giveMeBase recBaseFpath >>= writeIORef globalRecipes
+            giveMeBase recBaseFpath >>= sortRec >>= writeIORef globalRecipes
 
 --Сохранение баз в файл
 saveBases :: IO ()

@@ -39,7 +39,7 @@ giveMeBase fp = do
     --putStrLn $ show (chk body) ++ " " ++ show chksum
     if (not baseIsCorrect) then throw IncorrectBase
     else
-    	return $ linesToRecipes $ tail clines
+      return $ linesToRecipes $ tail clines
 
 
 --Возвращает базу аккаунтов
@@ -62,5 +62,4 @@ saveAccounts fp ubase = writeFile fp $ encryptBase $ unlines $
 
 --Запись аккаунтов обратно в файл
 saveBase::FilePath -> [Recipe] -> IO ()
-saveBase fp rbase = writeFile fp $ encryptBase $ unlines $
-		       map recipeToString rbase
+saveBase fp rbase = writeFile fp $ encryptBase $ unlines $ map recipeToString rbase
