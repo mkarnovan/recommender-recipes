@@ -13,24 +13,25 @@ isNumber str =
       _         -> False
 
 readBase :: GenParams -> IO ()
-readBase (PrintRecipeByIngr xs) = readIORef globalRecipes >>=
-           return .getRecipesByIngr xs >>= (\found -> if not (null found)
+readBase (PrintRecipeByIngr xs) = do
+           recBase <- (readIORef globalRecipes)
+           let found = getRecipesByIngr xs recBase
+           let func (n,s) = (show n) ++ ") " ++ s
+           if not (null found)
            then do
              let strs = map getShortDescr found
              putStrLn $ unlines $ map func $ zipWith (,) [1..(length strs)] strs
              putStrLn "Для получения подробного описания введите номер рецепта"
              x <- getLine
              if (isNumber x) then do
-               recBase <- (readIORef globalRecipes) --тут надо как то убрать
                let curRec = (found !! ((read x :: Int)-1))
                let (Recipe idu rat name ingr t desc) = curRec
                let newBase = (Recipe idu (rat+1) name ingr t desc) : (filter (\(Recipe _ _ name1 _ _ _) -> name1 /= name) recBase) --чтоб тут заюзать
                writeIORef globalRecipes newBase
                putStrLn $ getFullDescr curRec
              else putStrLn "Неверный номер"
-           else putStrLn "Нет рецепта с заданными ингредиентами")
-           where
-             func (n,s) = (show n) ++ ") " ++ s
+           else putStrLn "Нет рецепта с заданными ингредиентами"
+             
 
 
 readBase (PrintRecipeByName name) = do
