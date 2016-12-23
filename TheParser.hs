@@ -49,7 +49,7 @@ recipeToString (Recipe id rating name ingr time desc) =
 
 --------------Парсер комманд---------------
 parseTask :: [String] -> Either String GenParams
-parseTask [] = Left "Incorrect command format"
+parseTask [] = Left "Неверный формат команды. Для просмотра доступных команд введите help"
 parseTask (mode : xs)
  |mode == "filterIngr" = Right (PrintRecipeByIngr xs)
  |mode == "findByName" = Right (PrintRecipeByName (unwords xs))
@@ -60,7 +60,7 @@ parseTask (mode : xs)
  |mode == "signOut" = Right (SignOut)
  |mode == "help" = Right (Help)
  |mode == "quit" = Right (Quit)
- |otherwise = Left "Incorrect command format"
+ |otherwise = Left "Неверный формат команды. Для просмотра доступных команд введите help"
     where
         first_arg xs = head xs
         pwd [x,password] = password

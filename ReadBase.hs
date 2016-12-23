@@ -51,10 +51,13 @@ readBase (SignUp login pwd) =  readTVarIO globalAccounts >>= funcSingUp login pw
 
 readBase (SignIn login pwd) = readTVarIO globalAccounts >>= funcSingIn login pwd
 
+readBase (SignOut) = funcSingOut
+
 readBase (Help) = do
     putStrLn "filterIngr                       - выдает список рецептов по указанным ингредиентам"
     putStrLn "findByName                       - выдает описание рецепта по названию"
     putStrLn "filterByTime                     - выдает список рецептов, время готовки которых <= указанного числа минут"
     putStrLn "signUp                           - входит в систему под указанным логином"
     putStrLn "signIn                           - регистрация пользователя с вводимым логином и паролем"
+    putStrLn "signOut                          - выход из учетной записи"
     putStrLn "quit                             - выход из программы"

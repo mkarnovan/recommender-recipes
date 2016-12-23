@@ -16,7 +16,7 @@ askForCommand = do
             readBase gp
             askForCommand
         Left str -> do
-                    print str
+                    putStrLn str
                     askForCommand
 
 main = loadBases >> askForCommand >> saveBases

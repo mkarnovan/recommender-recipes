@@ -49,4 +49,9 @@ funcSingIn login pwd base = do
             atomically $ writeTVar globalSignedID (getIdByLog login base)
             putStrLn $ "Привет, " ++ login ++ "!"
         else putStrLn "Такого логина и пароля не существует, для регистрации используйте sign_up"
+
+funcSingOut :: IO ()
+funcSingOut = do
+    atomically$ writeTVar globalSignedID (-1)
+    putStrLn $ "Вы вышли из учетной записи."
 -----------------------------------------------------
