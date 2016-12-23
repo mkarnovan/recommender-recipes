@@ -52,7 +52,7 @@ parseTask :: [String] -> Either String GenParams
 parseTask [] = Left "Incorrect command format"
 parseTask (mode : xs)
  |mode == "filterIngr" = Right (PrintRecipeByIngr xs)
- |mode == "findByName" = Right (PrintRecipeByName $ first_arg xs)
+ |mode == "findByName" = Right (PrintRecipeByName (unwords xs))
  |mode == "filterByTime" = Right (FilterAll (read (first_arg xs) :: Int))
  |mode == "signUp" = Right (SignUp (first_arg xs) (pwd xs))
  |mode == "signIn" = Right (SignIn (first_arg xs) (pwd xs))

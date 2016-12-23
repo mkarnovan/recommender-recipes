@@ -30,7 +30,10 @@ readBase (PrintRecipeByIngr xs) = readTVarIO globalRecipes >>=
 
 readBase (PrintRecipeByName name) = do
     recBase <- (readTVarIO globalRecipes)
-    let (Recipe idu rat nam ingr t desc) = head (filter (\(Recipe _ _ name1 _ _ _) -> name == name1 ) recBase)
+    let curRec = head (filter (\(Recipe _ _ name1 _ _ _) -> name == name1 ) recBase)
+    let (Recipe idu rat nam ingr t desc) = curRec
+    let newBase = (Recipe idu (rat+1) nam ingr t desc) : (filter (\(Recipe _ _ name1 _ _ _) -> name1 /= name) recBase)
+    atomically $ writeTVar globalRecipes newBase
     putStrLn nam
     putStrLn desc
 
