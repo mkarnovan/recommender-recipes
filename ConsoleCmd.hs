@@ -3,7 +3,7 @@ import TheParser
 import TheLoader
 import Register
 import GlobalVars
-import Reciepts
+import Recipes
 import ReadBase
 
 askForCommand = do

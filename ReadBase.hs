@@ -3,7 +3,7 @@ module ReadBase where
 import DataDescription
 import Register
 import GlobalVars
-import Reciepts
+import Recipes
 import Data.IORef
 
 isNumber :: String -> Bool
